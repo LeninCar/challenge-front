@@ -16,9 +16,13 @@ export default function RequestDetail() {
     try {
       const detail = await getRequestDetail(id);
       setData(detail);
+      setMessage("");
     } catch (err) {
-      console.error(err);
-      setMessage("Error cargando detalle");
+      console.error("Error cargando detalle:", err);
+      const backendMsg = err.response?.data?.error;
+      setMessage(
+        backendMsg || "Error cargando detalle de la solicitud. Revisa los logs."
+      );
     }
   }
 
@@ -26,11 +30,29 @@ export default function RequestDetail() {
     loadDetail();
   }, [id]);
 
+  if (!data) return <p>Cargando...</p>;
+
+  const { request, history } = data;
+
+  // 🔐 ¿El usuario actual es el aprobador asignado?
+  const canChangeStatus =
+    !!currentUser &&
+    !!request &&
+    Number(currentUser.id) === Number(request.approver_id);
+
   async function handleChangeStatus(newStatus) {
     setMessage("");
 
     if (!currentUser) {
-      setMessage("No hay usuario actual seleccionando en el header");
+      setMessage("No hay usuario actual seleccionado en el header.");
+      return;
+    }
+
+    // Candado extra en el front (aunque el backend también lo valida)
+    if (!canChangeStatus) {
+      setMessage(
+        "No tienes permiso para cambiar el estado de esta solicitud. Solo el aprobador asignado puede aprobar o rechazar."
+      );
       return;
     }
 
@@ -38,20 +60,20 @@ export default function RequestDetail() {
       await changeRequestStatus(id, {
         newStatus,
         comment,
-        // 👇 ya NO mandamos actor_id: lo toma el backend desde req.user.id
+        // el backend toma actor_id desde req.user.id
       });
       setComment("");
-      setMessage(`Solicitud ${newStatus}`);
+      setMessage(`Solicitud actualizada a estado "${newStatus}".`);
       await loadDetail();
     } catch (err) {
-      console.error(err);
-      setMessage("Error cambiando estado");
+      console.error("Error cambiando estado:", err);
+      const backendMsg = err.response?.data?.error;
+      setMessage(
+        backendMsg ||
+          `Error cambiando estado de la solicitud: ${err.message || "Error desconocido"}.`
+      );
     }
   }
-
-  if (!data) return <p>Cargando...</p>;
-
-  const { request, history } = data;
 
   return (
     <section className="detail-page">
@@ -143,7 +165,7 @@ export default function RequestDetail() {
         <section className="detail-card">
           <h3 className="detail-card-title">Acciones</h3>
 
-          {/* Antes era un select; ahora mostramos el usuario actual */}
+          {/* Usuario actual */}
           <div className="form-field">
             <label>Usuario que actúa</label>
             <input
@@ -156,6 +178,14 @@ export default function RequestDetail() {
               disabled
             />
           </div>
+
+          {/* Aviso de permisos */}
+          {!canChangeStatus && (
+            <div className="detail-message detail-message-info" style={{ marginTop: 8 }}>
+              Esta solicitud solo puede ser aprobada o rechazada por el aprobador asignado
+              (ID #{request.approver_id}).
+            </div>
+          )}
 
           <div className="form-field form-field-full" style={{ marginTop: 8 }}>
             <label>Comentario</label>
@@ -171,19 +201,35 @@ export default function RequestDetail() {
             <button
               onClick={() => handleChangeStatus("aprobado")}
               className="primary-button"
+              disabled={!canChangeStatus}
+              style={
+                !canChangeStatus
+                  ? { opacity: 0.6, cursor: "not-allowed" }
+                  : undefined
+              }
             >
               Aprobar
             </button>
             <button
               onClick={() => handleChangeStatus("rechazado")}
               className="primary-button"
-              style={{ backgroundColor: "#991b1b" }}
+              style={{
+                backgroundColor: "#991b1b",
+                ...( !canChangeStatus
+                  ? { opacity: 0.6, cursor: "not-allowed" }
+                  : {} ),
+              }}
+              disabled={!canChangeStatus}
             >
               Rechazar
             </button>
           </div>
 
-          {message && <p className="detail-message">{message}</p>}
+          {message && (
+            <p className="detail-message" style={{ marginTop: 8 }}>
+              {message}
+            </p>
+          )}
         </section>
       </div>
     </section>
