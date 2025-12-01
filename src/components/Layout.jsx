@@ -8,7 +8,7 @@ import {
 } from "../api/notificationsApi";
 
 export default function Layout({ children }) {
-  const { users, currentUser, setCurrentUser, loading } = useAuth();
+  const { currentUser, logout } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [showPanel, setShowPanel] = useState(false);
   const [loadingNotis, setLoadingNotis] = useState(false);
@@ -29,7 +29,7 @@ export default function Layout({ children }) {
     }
   }
 
-  // 🔹 NUEVO: cada vez que cambie el usuario actual, recargamos notificaciones
+  // Cada vez que cambie el usuario actual, recargamos notificaciones
   useEffect(() => {
     if (!currentUser) return;
     loadNotifications();
@@ -40,7 +40,6 @@ export default function Layout({ children }) {
     const newShow = !showPanel;
     setShowPanel(newShow);
     if (newShow) {
-      // si quieres puedes volver a recargar al abrir, o quitar esta línea
       await loadNotifications();
     }
   };
@@ -61,48 +60,65 @@ export default function Layout({ children }) {
     }
   };
 
+  // Inicial para “avatar”
+  const userInitial =
+    currentUser?.name?.[0]?.toUpperCase() ||
+    currentUser?.email?.[0]?.toUpperCase() ||
+    "U";
+
   return (
     <div className="app">
       <header className="app-header">
         <div className="header-title">
-            <Link to="/" className="home-link">
+          <Link to="/" className="home-link">
             <div className="title-main">
-                <span className="title-badge">✔</span>
-                <span className="title-text">Sistema de Aprobaciones</span>
+              <span className="title-badge">✔</span>
+              <span className="title-text">Sistema de Aprobaciones</span>
             </div>
             <p className="title-sub">
-                CoE de Desarrollo · Solicitudes y flujos de aprobación
+              CoE de Desarrollo · Solicitudes y flujos de aprobación
             </p>
-            </Link>
+          </Link>
         </div>
 
-
         <div className="header-right" style={{ position: "relative" }}>
-          {/* Selector de usuario actual */}
-          <div className="user-select">
-            {loading ? (
-              <input
-                className="user-input"
-                value="Cargando usuarios..."
-                readOnly
-              />
+          {/* 👤 Info de usuario logueado */}
+          <div className="user-info" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            {currentUser ? (
+              <>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: "bold",
+                    backgroundColor: "#eee",
+                  }}
+                >
+                  {userInitial}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <span style={{ fontWeight: 600 }}>
+                    {currentUser.name || currentUser.email}
+                  </span>
+                  <span style={{ fontSize: "0.8rem", opacity: 0.8 }}>
+                    {currentUser.email}
+                    {currentUser.role ? ` · ${currentUser.role}` : ""}
+                  </span>
+                </div>
+                <button
+                  className="secondary-button"
+                  onClick={logout}
+                  style={{ marginLeft: "0.5rem" }}
+                >
+                  Cerrar sesión
+                </button>
+              </>
             ) : (
-              <select
-                className="user-input"
-                value={currentUser?.id || ""}
-                onChange={(e) => {
-                  const u = users.find(
-                    (x) => x.id === Number(e.target.value)
-                  );
-                  if (u) setCurrentUser(u);
-                }}
-              >
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name} ({u.role})
-                  </option>
-                ))}
-              </select>
+              <span style={{ fontStyle: "italic" }}>No autenticado</span>
             )}
           </div>
 
@@ -142,10 +158,11 @@ export default function Layout({ children }) {
                   <button
                     key={n.id}
                     className={
-                        "notification-item " + (n.read_at ? "is-read" : "is-unread")
+                      "notification-item " +
+                      (n.read_at ? "is-read" : "is-unread")
                     }
                     onClick={() => handleNotificationClick(n)}
-                    >
+                  >
                     <div className="notification-main">
                       <span className="notification-text">{n.message}</span>
                       <span className="notification-date">

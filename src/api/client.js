@@ -1,4 +1,4 @@
-// src/api/client.js (o donde lo tengas)
+// src/api/client.js
 import axios from "axios";
 
 // En dev: usa VITE_API_URL
@@ -9,12 +9,21 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
-// Antes de cada request, agregamos el header con el usuario actual
+// Antes de cada request, agregamos el header con el token JWT
 api.interceptors.request.use((config) => {
-  const userId = localStorage.getItem("currentUserId");
-  if (userId) {
-    config.headers["x-user-id"] = userId;
+  const token = localStorage.getItem("authToken");
+
+  if (token) {
+    config.headers["Authorization"] = `Bearer ${token}`;
   }
+
+  // 🟡 Si quieres mantener compatibilidad temporal con x-user-id:
+  // const storedUser = localStorage.getItem("currentUser");
+  // if (storedUser) {
+  //   const user = JSON.parse(storedUser);
+  //   config.headers["x-user-id"] = user.id;
+  // }
+
   return config;
 });
 

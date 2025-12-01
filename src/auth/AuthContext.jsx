@@ -1,48 +1,50 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { getUsers } from "../api/usersApi";
+// src/auth/AuthContext.jsx
+import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  // Cargar usuarios y restaurar user desde localStorage si existe
+  // Compatibilidad con código viejo
+  const [users] = useState([]);     // ya no los cargamos
+  const [loading] = useState(false);
+
+  // Restaurar usuario desde localStorage
   useEffect(() => {
-    (async () => {
+    const storedUser = localStorage.getItem("currentUser");
+    if (storedUser) {
       try {
-        const data = await getUsers();
-        setUsers(data);
-
-        const storedId = localStorage.getItem("currentUserId");
-        const fromStorage = data.find((u) => String(u.id) === storedId);
-
-        if (fromStorage) {
-          setCurrentUser(fromStorage);
-        } else if (data.length > 0) {
-          setCurrentUser(data[0]); // primero de la lista
-        }
-      } catch (err) {
-        console.error("Error cargando usuarios en AuthContext:", err);
-      } finally {
-        setLoading(false);
+        setCurrentUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Error parseando currentUser de localStorage:", e);
+        localStorage.removeItem("currentUser");
       }
-    })();
+    }
   }, []);
 
-  // Cuando cambia currentUser, guardar su id en localStorage
-  useEffect(() => {
-    if (currentUser?.id) {
-      localStorage.setItem("currentUserId", String(currentUser.id));
-    }
-  }, [currentUser]);
+  // login llamado después de /api/auth/google
+  const login = (user, token) => {
+    localStorage.setItem("authToken", token);
+    localStorage.setItem("currentUser", JSON.stringify(user));
+    setCurrentUser(user);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("currentUser");
+    setCurrentUser(null);
+  };
 
   const value = {
+    // 🔹 compat con código anterior
     users,
+    loading,
+    // 🔹 nuevo
     currentUser,
     setCurrentUser,
-    loading,
+    login,
+    logout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

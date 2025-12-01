@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 
 import { getRequestTypes } from "../api/requestTypesApi";
 import { createRequest } from "../api/requestsApi";
+import { getUsers } from "../api/usersApi";          // 👈 NUEVO
 import { useAuth } from "../auth/AuthContext";
 import RequestTypesModal from "../components/RequestTypesModal";
 
 export default function CreateRequest() {
   const navigate = useNavigate();
-  const { currentUser, users, loading: loadingUsers } = useAuth();
+  const { currentUser } = useAuth();                 // 👈 SOLO currentUser del contexto
 
   const [form, setForm] = useState({
     title: "",
@@ -26,6 +27,10 @@ export default function CreateRequest() {
 
   const [showTypesModal, setShowTypesModal] = useState(false);
 
+  // 👇 NUEVO: usuarios y loading de usuarios (ya no vienen del AuthContext)
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+
   // Cargar tipos
   useEffect(() => {
     (async () => {
@@ -38,6 +43,22 @@ export default function CreateRequest() {
         setErrorMsg("No se pudieron cargar los tipos de solicitud.");
       } finally {
         setLoadingTypes(false);
+      }
+    })();
+  }, []);
+
+  // 👇 NUEVO: cargar usuarios desde la API
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoadingUsers(true);
+        const data = await getUsers();
+        setUsers(data);
+      } catch (err) {
+        console.error("Error cargando usuarios:", err);
+        setErrorMsg("No se pudieron cargar los usuarios.");
+      } finally {
+        setLoadingUsers(false);
       }
     })();
   }, []);
@@ -72,7 +93,7 @@ export default function CreateRequest() {
 
     if (!currentUser) {
       setErrorMsg(
-        "Debes seleccionar un usuario actual (arriba) para crear solicitudes."
+        "Debes iniciar sesión para crear solicitudes."
       );
       return;
     }
@@ -93,6 +114,7 @@ export default function CreateRequest() {
         description: form.description.trim(),
         type: form.type,
         approver_id: Number(form.approver_id),
+        // requester_id lo toma el backend desde req.user (currentUser)
       };
 
       const created = await createRequest(payload);
@@ -131,7 +153,7 @@ export default function CreateRequest() {
           <strong>Solicitante:</strong>{" "}
           {currentUser
             ? `${currentUser.name} (${currentUser.role})`
-            : "Selecciona un usuario en el encabezado"}
+            : "Inicia sesión para crear solicitudes"}
         </p>
       </div>
 
