@@ -64,10 +64,18 @@ export default function Layout({ children }) {
   return (
     <div className="app">
       <header className="app-header">
-        <div>
-          <h1>Sistema de Aprobaciones</h1>
-          <p>Gestión de solicitudes del CoE de Desarrollo</p>
+        <div className="header-title">
+            <Link to="/" className="home-link">
+            <div className="title-main">
+                <span className="title-badge">✔</span>
+                <span className="title-text">Sistema de Aprobaciones</span>
+            </div>
+            <p className="title-sub">
+                CoE de Desarrollo · Solicitudes y flujos de aprobación
+            </p>
+            </Link>
         </div>
+
 
         <div className="header-right" style={{ position: "relative" }}>
           {/* Selector de usuario actual */}
@@ -134,11 +142,10 @@ export default function Layout({ children }) {
                   <button
                     key={n.id}
                     className={
-                      "notification-item" +
-                      (n.read_at ? " notification-read" : "")
+                        "notification-item " + (n.read_at ? "is-read" : "is-unread")
                     }
                     onClick={() => handleNotificationClick(n)}
-                  >
+                    >
                     <div className="notification-main">
                       <span className="notification-text">{n.message}</span>
                       <span className="notification-date">

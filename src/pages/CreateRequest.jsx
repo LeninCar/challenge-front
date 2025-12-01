@@ -1,142 +1,270 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUsers } from "../api/usersApi";
+
+import { getRequestTypes } from "../api/requestTypesApi";
 import { createRequest } from "../api/requestsApi";
 import { useAuth } from "../auth/AuthContext";
+import RequestTypesModal from "../components/RequestTypesModal";
 
 export default function CreateRequest() {
-  const { currentUser } = useAuth();
-  const [users, setUsers] = useState([]);
-  const [approverId, setApproverId] = useState("");
-  const [title, setTitle] = useState("");
-  const [type, setType] = useState("despliegue");
-  const [description, setDescription] = useState("");
-  const [message, setMessage] = useState("");
   const navigate = useNavigate();
+  const { currentUser, users, loading: loadingUsers } = useAuth();
 
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    type: "",
+    approver_id: "",
+  });
+
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const [types, setTypes] = useState([]);
+  const [loadingTypes, setLoadingTypes] = useState(true);
+
+  const [showTypesModal, setShowTypesModal] = useState(false);
+
+  // Cargar tipos
   useEffect(() => {
     (async () => {
       try {
-        const data = await getUsers();
-        setUsers(data);
+        setLoadingTypes(true);
+        const data = await getRequestTypes();
+        setTypes(data);
       } catch (err) {
-        console.error(err);
-        setMessage("Error cargando usuarios");
+        console.error("Error cargando tipos de solicitud:", err);
+        setErrorMsg("No se pudieron cargar los tipos de solicitud.");
+      } finally {
+        setLoadingTypes(false);
       }
     })();
   }, []);
 
-  async function handleSubmit(e) {
+  // Aprobadores
+  const approvers = useMemo(
+    () => users.filter((u) => u.role === "aprobador" || u.role === "approver"),
+    [users]
+  );
+
+  // Agrupar tipos por categoría
+  const typesByCategory = useMemo(() => {
+    return types.reduce((acc, t) => {
+      acc[t.category] = acc[t.category] || [];
+      acc[t.category].push(t);
+      return acc;
+    }, {});
+  }, [types]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
+    setErrorMsg("");
+    setSuccessMsg("");
 
     if (!currentUser) {
-      setMessage("No hay usuario actual");
+      setErrorMsg(
+        "Debes seleccionar un usuario actual (arriba) para crear solicitudes."
+      );
+      return;
+    }
+    if (!form.type) {
+      setErrorMsg("Debes seleccionar un tipo de solicitud.");
+      return;
+    }
+    if (!form.approver_id) {
+      setErrorMsg("Debes seleccionar un aprobador.");
       return;
     }
 
     try {
-      const res = await createRequest({
-        title,
-        description,
-        type,
-        approver_id: Number(approverId),
-        // requester_id ya NO se manda: lo calcula el backend con req.user.id
+      setSubmitting(true);
+
+      const payload = {
+        title: form.title.trim(),
+        description: form.description.trim(),
+        type: form.type,
+        approver_id: Number(form.approver_id),
+      };
+
+      const created = await createRequest(payload);
+
+      setSuccessMsg(`Solicitud #${created.id} creada correctamente.`);
+      setForm({
+        title: "",
+        description: "",
+        type: "",
+        approver_id: "",
       });
-      setMessage(`Solicitud creada con id ${res.id}`);
-      setTimeout(() => navigate(`/requests/${res.id}`), 800);
+
+      navigate(`/requests/${created.id}`);
     } catch (err) {
-      console.error(err);
-      setMessage("Error creando solicitud");
+      console.error("Error creando solicitud:", err);
+      setErrorMsg(
+        err.response?.data?.error || "Ocurrió un error creando la solicitud."
+      );
+    } finally {
+      setSubmitting(false);
     }
-  }
+  };
+
+  // Cuando el modal crea un tipo nuevo
+  const handleTypeCreated = (created) => {
+    setTypes((prev) => [...prev, created]);
+    setForm((prev) => ({ ...prev, type: created.key }));
+  };
 
   return (
-    <section className="page-section">
-      <div className="page-header">
-        <h2>Crear nueva solicitud</h2>
-        <p className="page-subtitle">
-          Completa la información para enviar una solicitud al CoE de Desarrollo.
+    <div className="page create-request-page">
+      <h2>Nueva solicitud</h2>
+
+      <div className="create-request-meta">
+        <p>
+          <strong>Solicitante:</strong>{" "}
+          {currentUser
+            ? `${currentUser.name} (${currentUser.role})`
+            : "Selecciona un usuario en el encabezado"}
         </p>
       </div>
 
-      <form className="form-card" onSubmit={handleSubmit}>
-        <div className="form-grid">
-          {/* Solicitante (solo informativo) */}
-          <div className="form-field">
-            <label>Solicitante</label>
-            <input
-              type="text"
-              value={
-                currentUser
-                  ? `${currentUser.name} (${currentUser.role})`
-                  : "Sin usuario"
-              }
-              disabled
-            />
+      {errorMsg && <div className="alert alert-error">{errorMsg}</div>}
+      {successMsg && <div className="alert alert-success">{successMsg}</div>}
+
+      <form className="create-request-form" onSubmit={handleSubmit}>
+        {/* Título */}
+        <label className="form-field">
+          <span>Título</span>
+          <input
+            type="text"
+            name="title"
+            value={form.title}
+            onChange={handleChange}
+            placeholder="Ej. Despliegue nueva versión del servicio de pagos"
+            required
+          />
+        </label>
+
+        {/* Descripción */}
+        <label className="form-field">
+          <span>Descripción</span>
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            rows={4}
+            placeholder="Describe el contexto, impacto, entorno, ventanas de tiempo, etc."
+            required
+          />
+        </label>
+
+        {/* Tipo + botón modal */}
+        <label className="form-field">
+          <div className="field-label-with-action">
+            <span>Tipo de solicitud</span>
+            <button
+              type="button"
+              className="chip-button"
+              onClick={() => setShowTypesModal(true)}
+            >
+              Ver y crear tipos
+            </button>
           </div>
 
-          {/* Aprobador */}
-          <div className="form-field">
-            <label>Aprobador</label>
+          {loadingTypes ? (
+            <div className="field-inline-hint">Cargando tipos...</div>
+          ) : (
             <select
-              value={approverId}
-              onChange={(e) => setApproverId(e.target.value)}
+              name="type"
+              value={form.type}
+              onChange={handleChange}
               required
             >
-              <option value="">Seleccione...</option>
-              {users
-                .filter((u) => u.role === "aprobador")
-                .map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
+              <option value="">Selecciona un tipo...</option>
+              {Object.entries(typesByCategory).map(([category, items]) => (
+                <optgroup key={category} label={category}>
+                  {items.map((t) => (
+                    <option key={t.id} value={t.key}>
+                      {t.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
             </select>
-          </div>
+          )}
 
-          {/* Título */}
-          <div className="form-field">
-            <label>Título de la solicitud</label>
-            <input
-              type="text"
-              placeholder="Ej. Despliegue microservicio X v1.2"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+          {form.type && (
+            <small className="field-inline-hint">
+              {
+                types.find((t) => t.key === form.type)?.description ??
+                "Tipo de solicitud seleccionado."
+              }
+            </small>
+          )}
+        </label>
+
+        {/* Aprobador */}
+        <label className="form-field">
+          <span>Aprobador</span>
+
+          {loadingUsers ? (
+            <div className="field-inline-hint">Cargando usuarios...</div>
+          ) : approvers.length === 0 ? (
+            <div className="field-inline-hint">
+              No hay usuarios con rol de aprobador configurados.
+            </div>
+          ) : (
+            <select
+              name="approver_id"
+              value={form.approver_id}
+              onChange={handleChange}
               required
-            />
-          </div>
-
-          {/* Tipo */}
-          <div className="form-field">
-            <label>Tipo</label>
-            <select value={type} onChange={(e) => setType(e.target.value)}>
-              <option value="despliegue">Despliegue</option>
-              <option value="acceso">Acceso</option>
-              <option value="cambio técnico">Cambio Técnico</option>
+            >
+              <option value="">Selecciona un aprobador...</option>
+              {approvers.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.email || u.role})
+                </option>
+              ))}
             </select>
-          </div>
+          )}
+        </label>
 
-          {/* Descripción */}
-          <div className="form-field form-field-full">
-            <label>Descripción</label>
-            <textarea
-              rows={4}
-              placeholder="Describe el cambio, impacto, justificación..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-            />
-          </div>
-        </div>
+        {/* Botones */}
+        <div className="form-actions">
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => navigate(-1)}
+            disabled={submitting}
+          >
+            Cancelar
+          </button>
 
-        <div className="form-footer">
-          {message && <span className="form-message">{message}</span>}
-          <button type="submit" className="primary-button">
-            Crear solicitud
+          <button
+            type="submit"
+            className="primary-button"
+            disabled={submitting || !currentUser}
+          >
+            {submitting ? "Creando..." : "Crear solicitud"}
           </button>
         </div>
       </form>
-    </section>
+
+      {/* Modal de tipos */}
+      <RequestTypesModal
+        open={showTypesModal}
+        onClose={() => setShowTypesModal(false)}
+        types={types}
+        onTypeCreated={handleTypeCreated}
+      />
+    </div>
   );
 }

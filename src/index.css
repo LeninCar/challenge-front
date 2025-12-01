@@ -678,3 +678,185 @@ body {
   color: #666;
   font-weight: 400;
 }
+
+/* Contenedor del título */
+.header-title {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Quitar estilo de enlace y hacer que se vea como bloque clickeable */
+.home-link {
+  text-decoration: none;
+  color: inherit;
+  display: inline-block;
+}
+
+/* Línea principal del título */
+.title-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Iconito/badge del título */
+.title-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.45);
+}
+
+/* Texto principal del título con efecto degradado suave */
+.title-text {
+  font-size: 1.5rem;          /* un poco más grande */
+  font-weight: 700;
+  background: linear-gradient(120deg, #111827, #2563eb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Subtítulo debajo del nombre */
+.title-sub {
+  margin: 2px 0 0 34px;       /* alineado con el texto, dejando espacio del badge */
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* Hover: darle un poquito de vida */
+.home-link:hover .title-badge {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 0 14px rgba(37, 99, 235, 0.6);
+  transition: all 0.15s ease-out;
+}
+
+.home-link:hover .title-text {
+  filter: brightness(1.1);
+  transition: filter 0.15s ease-out;
+}
+
+
+
+
+
+
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55); /* azul oscuro translúcido */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal {
+  background: #ffffff;
+  max-width: 900px;
+  width: 95%;
+  max-height: 90vh;
+  border-radius: 12px;
+  padding: 16px 20px 12px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.modal-header h3 {
+  margin: 0;
+}
+
+.modal-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.modal-body.request-types-body {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 16px;
+  padding-top: 4px;
+  padding-bottom: 8px;
+  overflow: auto;
+}
+
+.modal-column h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.compact-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.compact-table th,
+.compact-table td {
+  border: 1px solid #e5e7eb;
+  padding: 4px 8px;
+}
+
+.compact-table th {
+  background: #f9fafb;
+  text-align: left;
+}
+
+.tag-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-size: 0.75rem;
+}
+
+.chip-button {
+  border: none;
+  background: #eef2ff;
+  color: #4338ca;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.chip-button:hover {
+  background: #e0e7ff;
+}
+
+.field-label-with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hint-text {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
