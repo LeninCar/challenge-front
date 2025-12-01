@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getUsers } from "../api/usersApi";
 import { createRequest } from "../api/requestsApi";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 
 export default function CreateRequest() {
+  const { currentUser } = useAuth();
   const [users, setUsers] = useState([]);
-  const [requesterId, setRequesterId] = useState("");
   const [approverId, setApproverId] = useState("");
   const [title, setTitle] = useState("");
   const [type, setType] = useState("despliegue");
@@ -28,16 +29,22 @@ export default function CreateRequest() {
   async function handleSubmit(e) {
     e.preventDefault();
     setMessage("");
+
+    if (!currentUser) {
+      setMessage("No hay usuario actual");
+      return;
+    }
+
     try {
       const res = await createRequest({
         title,
         description,
         type,
-        requester_id: Number(requesterId),
         approver_id: Number(approverId),
+        // requester_id ya NO se manda: lo calcula el backend con req.user.id
       });
       setMessage(`Solicitud creada con id ${res.id}`);
-      setTimeout(() => navigate("/"), 1000);
+      setTimeout(() => navigate(`/requests/${res.id}`), 800);
     } catch (err) {
       console.error(err);
       setMessage("Error creando solicitud");
@@ -55,23 +62,18 @@ export default function CreateRequest() {
 
       <form className="form-card" onSubmit={handleSubmit}>
         <div className="form-grid">
-          {/* Solicitante */}
+          {/* Solicitante (solo informativo) */}
           <div className="form-field">
             <label>Solicitante</label>
-            <select
-              value={requesterId}
-              onChange={(e) => setRequesterId(e.target.value)}
-              required
-            >
-              <option value="">Seleccione...</option>
-              {users
-                .filter((u) => u.role === "solicitante" || u.role === "admin")
-                .map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name} ({u.role})
-                  </option>
-                ))}
-            </select>
+            <input
+              type="text"
+              value={
+                currentUser
+                  ? `${currentUser.name} (${currentUser.role})`
+                  : "Sin usuario"
+              }
+              disabled
+            />
           </div>
 
           {/* Aprobador */}
@@ -98,7 +100,7 @@ export default function CreateRequest() {
             <label>Título de la solicitud</label>
             <input
               type="text"
-              placeholder="Ej. Despliegue microservicio de pagos v1.2"
+              placeholder="Ej. Despliegue microservicio X v1.2"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
@@ -120,7 +122,7 @@ export default function CreateRequest() {
             <label>Descripción</label>
             <textarea
               rows={4}
-              placeholder="Describe brevemente el cambio, impacto y justificación..."
+              placeholder="Describe el cambio, impacto, justificación..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required

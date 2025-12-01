@@ -580,3 +580,101 @@ body {
   font-size: 13px;
   color: #059669;
 }
+
+/* Notiificaciones */
+
+
+.notifications-panel {
+  position: absolute;
+  right: 0;
+  top: 52px;
+  width: 320px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
+  padding: 10px 0;
+  z-index: 50;
+}
+
+.notifications-header {
+  padding: 0 12px 6px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.notifications-list {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.notifications-empty {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.notification-item {
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+}
+
+.notification-item:hover {
+  background-color: #f3f4f6;
+}
+
+.notification-main {
+  flex: 1;
+}
+
+.notification-text {
+  display: block;
+  font-size: 13px;
+  color: #111827;
+}
+
+.notification-date {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.notification-read .notification-text {
+  color: #6b7280;
+}
+
+.notif-loading {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* 🔔 Estilo base: NOTIFICACIÓN NO LEÍDA (por defecto) */
+.notification-item {
+  width: 100%;
+  text-align: left;
+  border: none;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+
+  /* Fondo para NO leída */
+  background-color: #e6f0ff;  /* azulito suave */
+  color: #111;
+  font-weight: 600;
+}
+
+/* ✅ Notificación LEÍDA */
+.notification-item.notification-read {
+  background-color: #f3f3f3;  /* gris clarito */
+  color: #666;
+  font-weight: 400;
+}

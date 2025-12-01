@@ -1,13 +1,14 @@
+// src/pages/RequestDetail.jsx
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getRequestDetail, changeRequestStatus } from "../api/requestsApi";
-import { getUsers } from "../api/usersApi";
+import { useAuth } from "../auth/AuthContext";
 
 export default function RequestDetail() {
   const { id } = useParams();
+  const { currentUser } = useAuth();
+
   const [data, setData] = useState(null);
-  const [users, setUsers] = useState([]);
-  const [actorId, setActorId] = useState("");
   const [comment, setComment] = useState("");
   const [message, setMessage] = useState("");
 
@@ -22,31 +23,22 @@ export default function RequestDetail() {
   }
 
   useEffect(() => {
-    (async () => {
-      try {
-        const u = await getUsers();
-        setUsers(u);
-      } catch (err) {
-        console.error(err);
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
     loadDetail();
   }, [id]);
 
   async function handleChangeStatus(newStatus) {
     setMessage("");
-    if (!actorId) {
-      setMessage("Selecciona quién realiza la acción");
+
+    if (!currentUser) {
+      setMessage("No hay usuario actual seleccionando en el header");
       return;
     }
+
     try {
       await changeRequestStatus(id, {
         newStatus,
         comment,
-        actor_id: Number(actorId),
+        // 👇 ya NO mandamos actor_id: lo toma el backend desde req.user.id
       });
       setComment("");
       setMessage(`Solicitud ${newStatus}`);
@@ -127,9 +119,11 @@ export default function RequestDetail() {
                         {new Date(h.created_at).toLocaleString()}
                       </span>
                       <div className="history-main">
-                        <strong>{h.actor_name || `Usuario #${h.actor_id}`}</strong>
+                        <strong>
+                          {h.actor_name || `Usuario #${h.actor_id}`}
+                        </strong>
                         <span className="history-status">
-                          {h.old_status || "N/A"} → {h.new_status}
+                          {h.old_status || "Nueva"} → {h.new_status}
                         </span>
                       </div>
                       {h.comment && (
@@ -149,19 +143,18 @@ export default function RequestDetail() {
         <section className="detail-card">
           <h3 className="detail-card-title">Acciones</h3>
 
+          {/* Antes era un select; ahora mostramos el usuario actual */}
           <div className="form-field">
             <label>Usuario que actúa</label>
-            <select
-              value={actorId}
-              onChange={(e) => setActorId(e.target.value)}
-            >
-              <option value="">Seleccione...</option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name} ({u.role})
-                </option>
-              ))}
-            </select>
+            <input
+              type="text"
+              value={
+                currentUser
+                  ? `${currentUser.name} (${currentUser.role})`
+                  : "Sin usuario actual"
+              }
+              disabled
+            />
           </div>
 
           <div className="form-field form-field-full" style={{ marginTop: 8 }}>
