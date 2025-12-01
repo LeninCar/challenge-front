@@ -1,7 +1,12 @@
+// src/api/client.js (o donde lo tengas)
 import axios from "axios";
 
+// En dev: usa VITE_API_URL
+// En producción (Vercel): si no hay variable, usa "/api"
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+
 const api = axios.create({
-  baseURL: "http://localhost:4000/api",
+  baseURL: API_BASE_URL,
 });
 
 // Antes de cada request, agregamos el header con el usuario actual
