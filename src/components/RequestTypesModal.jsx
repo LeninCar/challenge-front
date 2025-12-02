@@ -14,6 +14,7 @@ export default function RequestTypesModal({
     category: "",
     description: "",
   });
+
   const [savingType, setSavingType] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -42,10 +43,8 @@ export default function RequestTypesModal({
 
       const created = await createRequestType(payload);
 
-      // Avisar al padre
       onTypeCreated?.(created);
 
-      // Limpiar formulario
       setTypeForm({
         key: "",
         label: "",
@@ -67,32 +66,31 @@ export default function RequestTypesModal({
   return (
     <div className="modal-overlay">
       <div className="modal request-types-modal">
+
+        {/* HEADER */}
         <div className="modal-header">
           <div>
-            <h3>Gestionar tipos de solicitud</h3>
+            <h3 className="modal-title">Gestionar tipos de solicitud</h3>
             <p className="modal-subtitle">
-              Consulta los tipos existentes y crea nuevos sin salir de esta
-              pantalla.
+              Consulta los tipos existentes y crea nuevos.
             </p>
           </div>
-          <button
-            type="button"
-            className="icon-button"
-            onClick={onClose}
-            aria-label="Cerrar"
-          >
+
+          <button type="button" className="close-button" onClick={onClose}>
             ✕
           </button>
         </div>
 
-        <div className="modal-body request-types-body">
-          {/* Columna izquierda: tabla */}
+        {/* BODY */}
+        <div className="modal-content-columns">
+          {/* IZQUIERDA → Tabla */}
           <div className="modal-column">
-            <h4>Tipos existentes</h4>
+            <h4 className="section-title">Tipos existentes</h4>
+
             {types.length === 0 ? (
               <p className="hint-text">Todavía no hay tipos registrados.</p>
             ) : (
-              <table className="compact-table">
+              <table className="clean-table">
                 <thead>
                   <tr>
                     <th>Key</th>
@@ -103,9 +101,7 @@ export default function RequestTypesModal({
                 <tbody>
                   {types.map((t) => (
                     <tr key={t.id}>
-                      <td>
-                        <span className="tag-pill">{t.key}</span>
-                      </td>
+                      <td><span className="tag">{t.key}</span></td>
                       <td>{t.label}</td>
                       <td>{t.category}</td>
                     </tr>
@@ -115,80 +111,68 @@ export default function RequestTypesModal({
             )}
           </div>
 
-          {/* Columna derecha: formulario */}
+          {/* DERECHA → Formulario */}
           <div className="modal-column">
-            <h4>Crear nuevo tipo</h4>
+            <h4 className="section-title">Crear nuevo tipo</h4>
 
             {errorMsg && <div className="alert alert-error">{errorMsg}</div>}
-            {successMsg && (
-              <div className="alert alert-success">{successMsg}</div>
-            )}
+            {successMsg && <div className="alert alert-success">{successMsg}</div>}
 
-            <form onSubmit={handleSubmit} className="request-type-form">
-              <label className="form-field">
-                <span>Key (técnica)</span>
+            <form onSubmit={handleSubmit} className="simple-form">
+              <label>
+                <span>Key técnica</span>
                 <input
                   name="key"
                   value={typeForm.key}
                   onChange={handleChange}
-                  placeholder="ej: despliegue, acceso, cambio_tecnico"
                   required
                 />
               </label>
 
-              <label className="form-field">
+              <label>
                 <span>Nombre visible</span>
                 <input
                   name="label"
                   value={typeForm.label}
                   onChange={handleChange}
-                  placeholder="ej: Despliegue de versión"
                   required
                 />
               </label>
 
-              <label className="form-field">
+              <label>
                 <span>Categoría</span>
                 <input
                   name="category"
                   value={typeForm.category}
                   onChange={handleChange}
-                  placeholder="ej: Despliegues, Accesos, Cambios"
                   required
                 />
               </label>
 
-              <label className="form-field">
+              <label>
                 <span>Descripción</span>
                 <textarea
                   name="description"
                   value={typeForm.description}
                   onChange={handleChange}
                   rows={3}
-                  placeholder="Descripción corta para que el equipo sepa cuándo usar este tipo."
                 />
               </label>
 
-              <button
-                type="submit"
-                className="primary-button full-width"
-                disabled={savingType}
-              >
+              <button type="submit" className="primary-button" disabled={savingType}>
                 {savingType ? "Guardando..." : "Crear tipo"}
               </button>
             </form>
           </div>
         </div>
 
+        {/* FOOTER */}
         <div className="modal-footer">
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={onClose}
-          >
+          <button className="secondary-button" onClick={onClose}>
             Cerrar
           </button>
         </div>
+
       </div>
     </div>
   );

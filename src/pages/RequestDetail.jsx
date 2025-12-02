@@ -39,7 +39,7 @@ export default function RequestDetail() {
 
     const intervalId = setInterval(() => {
       loadDetail();
-    }, 10000); // 30 000 ms = 30s
+    }, 10000); // 10 000 ms = 10s
 
     // Limpiar intervalo al salir de la pantalla o cambiar de id
     return () => clearInterval(intervalId);

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyRequests, getRequestsByApprover } from "../api/requestsApi";
+import { getRequestTypes } from "../api/requestTypesApi"; // 🔹 NUEVO
 import RequestCard from "../components/RequestCard";
 import { useAuth } from "../auth/AuthContext";
 
@@ -22,11 +23,15 @@ export default function Dashboard() {
 
   const [requests, setRequests] = useState([]);
 
-  const [search, setSearch] = useState("");      // 🔍 texto de búsqueda
+  const [search, setSearch] = useState(""); // 🔍 texto de búsqueda
   const [statusFilter, setStatusFilter] = useState("todos");
   const [typeFilter, setTypeFilter] = useState("todos");
 
   const [message, setMessage] = useState("");
+
+  // 🔹 NUEVO: tipos de solicitud desde el backend
+  const [types, setTypes] = useState([]);
+  const [loadingTypes, setLoadingTypes] = useState(true);
 
   // Cargar solicitudes según el rol del usuario logueado
   useEffect(() => {
@@ -59,6 +64,42 @@ export default function Dashboard() {
     })();
   }, [currentUser]);
 
+  // 🔹 Cargar tipos de solicitud desde el backend
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoadingTypes(true);
+        const data = await getRequestTypes();
+        setTypes(data || []);
+      } catch (err) {
+        console.error("Error cargando tipos de solicitud:", err);
+      } finally {
+        setLoadingTypes(false);
+      }
+    })();
+  }, []);
+
+  // 🔹 Opciones únicas de tipo para el filtro
+  const typeOptions = useMemo(() => {
+    const keys = new Set();
+    const result = [];
+
+    for (const t of types) {
+      // En tu API normalmente viene algo como { id, key, label, ... }
+      const key = t.key || t.code || t.name;
+      if (!key) continue;
+      if (!keys.has(key)) {
+        keys.add(key);
+        result.push({
+          value: key,
+          label: t.label || t.name || key,
+        });
+      }
+    }
+
+    return result;
+  }, [types]);
+
   // Estadísticas
   const stats = useMemo(() => {
     const total = requests.length;
@@ -71,8 +112,7 @@ export default function Dashboard() {
   // 🔍 Filtro de búsqueda + estado + tipo
   const filteredRequests = useMemo(() => {
     return requests.filter((r) => {
-      const text = `${r.title ?? ""} ${r.description ?? ""} ${r.id ?? ""}`
-        .toLowerCase();
+      const text = `${r.title ?? ""} ${r.description ?? ""} ${r.id ?? ""}`.toLowerCase();
 
       const matchesSearch = text.includes(search.toLowerCase());
 
@@ -139,15 +179,25 @@ export default function Dashboard() {
             <option value="rechazado">Rechazadas</option>
           </select>
 
-          {/* Tipo */}
+          {/* Tipo – ahora dinámico desde el backend */}
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
           >
             <option value="todos">Todos los tipos</option>
-            <option value="despliegue">Despliegue</option>
-            <option value="acceso">Acceso</option>
-            <option value="cambio técnico">Cambio Técnico</option>
+
+            {loadingTypes && (
+              <option value="" disabled>
+                Cargando tipos...
+              </option>
+            )}
+
+            {!loadingTypes &&
+              typeOptions.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
           </select>
         </div>
       </section>

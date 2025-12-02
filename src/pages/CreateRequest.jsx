@@ -163,40 +163,42 @@ export default function CreateRequest() {
       <form className="create-request-form" onSubmit={handleSubmit}>
         {/* Título */}
         <label className="form-field">
-          <span>Título</span>
+          <span className="form-label">Título</span>
           <input
             type="text"
             name="title"
             value={form.title}
             onChange={handleChange}
             placeholder="Ej. Despliegue nueva versión del servicio de pagos"
+            className="form-input"
             required
           />
         </label>
 
         {/* Descripción */}
         <label className="form-field">
-          <span>Descripción</span>
+          <span className="form-label">Descripción</span>
           <textarea
             name="description"
             value={form.description}
             onChange={handleChange}
             rows={4}
             placeholder="Describe el contexto, impacto, entorno, ventanas de tiempo, etc."
+            className="form-textarea"
             required
           />
         </label>
 
         {/* Tipo + botón modal */}
         <label className="form-field">
-          <div className="field-label-with-action">
-            <span>Tipo de solicitud</span>
+          <div className="form-label-row">
+            <span className="form-label">Tipo de solicitud</span>
             <button
               type="button"
-              className="chip-button"
+              className="chip-button small"
               onClick={() => setShowTypesModal(true)}
             >
-              Ver y crear tipos
+              Ver / Crear tipos
             </button>
           </div>
 
@@ -207,6 +209,7 @@ export default function CreateRequest() {
               name="type"
               value={form.type}
               onChange={handleChange}
+              className="form-select"
               required
             >
               <option value="">Selecciona un tipo...</option>
@@ -223,30 +226,29 @@ export default function CreateRequest() {
           )}
 
           {form.type && (
-            <small className="field-inline-hint">
-              {
-                types.find((t) => t.key === form.type)?.description ??
-                "Tipo de solicitud seleccionado."
-              }
+            <small className="field-hint">
+              {types.find((t) => t.key === form.type)?.description ??
+                "Tipo seleccionado."}
             </small>
           )}
         </label>
 
         {/* Aprobador */}
         <label className="form-field">
-          <span>Aprobador</span>
+          <span className="form-label">Aprobador</span>
 
           {loadingUsers ? (
             <div className="field-inline-hint">Cargando usuarios...</div>
           ) : approvers.length === 0 ? (
             <div className="field-inline-hint">
-              No hay usuarios con rol de aprobador configurados.
+              No hay usuarios con rol de aprobador.
             </div>
           ) : (
             <select
               name="approver_id"
               value={form.approver_id}
               onChange={handleChange}
+              className="form-select"
               required
             >
               <option value="">Selecciona un aprobador...</option>
@@ -260,7 +262,7 @@ export default function CreateRequest() {
         </label>
 
         {/* Botones */}
-        <div className="form-actions">
+        <div className="form-actions-right">
           <button
             type="button"
             className="secondary-button"
@@ -279,6 +281,7 @@ export default function CreateRequest() {
           </button>
         </div>
       </form>
+
 
       {/* Modal de tipos */}
       <RequestTypesModal
