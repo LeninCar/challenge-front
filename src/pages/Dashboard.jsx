@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyRequests, getRequestsByApprover } from "../api/requestsApi";
-import { getRequestTypes } from "../api/requestTypesApi"; // 🔹 NUEVO
+import { getRequestTypes } from "../api/requestTypesApi"; 
 import RequestCard from "../components/RequestCard";
 import { useAuth } from "../auth/AuthContext";
 
@@ -23,13 +23,13 @@ export default function Dashboard() {
 
   const [requests, setRequests] = useState([]);
 
-  const [search, setSearch] = useState(""); // 🔍 texto de búsqueda
+  const [search, setSearch] = useState(""); 
   const [statusFilter, setStatusFilter] = useState("todos");
   const [typeFilter, setTypeFilter] = useState("todos");
 
   const [message, setMessage] = useState("");
 
-  // 🔹 NUEVO: tipos de solicitud desde el backend
+  
   const [types, setTypes] = useState([]);
   const [loadingTypes, setLoadingTypes] = useState(true);
 
@@ -85,7 +85,6 @@ export default function Dashboard() {
     const result = [];
 
     for (const t of types) {
-      // En tu API normalmente viene algo como { id, key, label, ... }
       const key = t.key || t.code || t.name;
       if (!key) continue;
       if (!keys.has(key)) {
@@ -109,7 +108,6 @@ export default function Dashboard() {
     return { total, pending, approved, rejected };
   }, [requests]);
 
-  // 🔍 Filtro de búsqueda + estado + tipo
   const filteredRequests = useMemo(() => {
     return requests.filter((r) => {
       const text = `${r.title ?? ""} ${r.description ?? ""} ${r.id ?? ""}`.toLowerCase();
@@ -179,7 +177,7 @@ export default function Dashboard() {
             <option value="rechazado">Rechazadas</option>
           </select>
 
-          {/* Tipo – ahora dinámico desde el backend */}
+          {/* Tipo */}
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}

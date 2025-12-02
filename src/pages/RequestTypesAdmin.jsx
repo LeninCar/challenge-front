@@ -13,6 +13,7 @@ export default function RequestTypesAdmin() {
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   const [form, setForm] = useState({
     key: "",
@@ -60,6 +61,7 @@ export default function RequestTypesAdmin() {
       setTypes((prev) => [...prev, created]);
       setForm({ key: "", label: "", category: "", description: "" });
       setSuccessMsg("Tipo creado correctamente.");
+      setShowModal(false);
     } catch (err) {
       console.error("Error creando tipo:", err);
       setErrorMsg(
@@ -88,119 +90,151 @@ export default function RequestTypesAdmin() {
 
   return (
     <div className="page request-types-admin">
-      <h2>Administrar tipos de solicitud</h2>
-      <p>Define qué tipos existen en el sistema de aprobaciones.</p>
+      <div className="page-header">
+        <h2>Gestionar tipos de solicitud</h2>
+        <p className="page-subtitle">
+          Consulta los tipos existentes y crea nuevos.
+        </p>
+      </div>
 
       {errorMsg && <div className="alert alert-error">{errorMsg}</div>}
       {successMsg && <div className="alert alert-success">{successMsg}</div>}
 
-      <div className="request-types-layout">
-        {/* Formulario de creación */}
-        <form className="request-type-form" onSubmit={handleCreate}>
-          <h3>Nuevo tipo</h3>
-
-          <label className="form-field">
-            <span>Key (técnica)</span>
-            <input
-              name="key"
-              value={form.key}
-              onChange={handleChange}
-              placeholder="ej: despliegue, acceso, cambio_tecnico"
-              required
-            />
-          </label>
-
-          <label className="form-field">
-            <span>Nombre visible</span>
-            <input
-              name="label"
-              value={form.label}
-              onChange={handleChange}
-              placeholder="ej: Despliegue de versión"
-              required
-            />
-          </label>
-
-          <label className="form-field">
-            <span>Categoría</span>
-            <input
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-              placeholder="ej: Despliegues, Accesos, Cambios"
-              required
-            />
-          </label>
-
-          <label className="form-field">
-            <span>Descripción</span>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              rows={3}
-              placeholder="Descripción corta para que el equipo sepa cuándo usar este tipo."
-            />
-          </label>
-
-          <button
-            type="submit"
-            className="primary-button"
-            disabled={saving}
-          >
-            {saving ? "Guardando..." : "Crear tipo"}
-          </button>
-        </form>
-
-        {/* Tabla de tipos */}
-        <div className="request-types-table">
-          <h3>Tipos existentes</h3>
-          {loading ? (
-            <p>Cargando...</p>
-          ) : types.length === 0 ? (
-            <p>No hay tipos configurados todavía.</p>
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Key</th>
-                  <th>Nombre</th>
-                  <th>Categoría</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {types.map((t) => (
-                  <tr key={t.id}>
-                    <td>{t.key}</td>
-                    <td>{t.label}</td>
-                    <td>{t.category}</td>
-                    <td>
-                      <span
-                        className={
-                          t.active
-                            ? "status-pill status-active"
-                            : "status-pill status-inactive"
-                        }
-                      >
-                        {t.active ? "Activo" : "Inactivo"}
-                      </span>
-                      <button
-                        type="button"
-                        className="small-button"
-                        style={{ marginLeft: "8px" }}
-                        onClick={() => toggleActive(t)}
-                      >
-                        {t.active ? "Desactivar" : "Activar"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+      <div style={{ marginTop: "20px" }}>
+        <button
+          className="primary-button"
+          onClick={() => setShowModal(true)}
+        >
+          + Crear nuevo tipo
+        </button>
       </div>
+
+      {/* Tabla de tipos */}
+      <div style={{ marginTop: "24px" }}>
+        <h3>Tipos existentes</h3>
+        {loading ? (
+          <p>Cargando...</p>
+        ) : types.length === 0 ? (
+          <p>No hay tipos configurados todavía.</p>
+        ) : (
+          <table className="clean-table">
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {types.map((t) => (
+                <tr key={t.id}>
+                  <td>
+                    <span className="tag">{t.key}</span>
+                  </td>
+                  <td>{t.label}</td>
+                  <td>{t.category}</td>
+                  <td>
+                    <span
+                      className={
+                        t.active
+                          ? "badge badge-approved"
+                          : "badge badge-pending"
+                      }
+                    >
+                      {t.active ? "Activo" : "Inactivo"}
+                    </span>
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      style={{ marginLeft: "8px", padding: "4px 10px" }}
+                      onClick={() => toggleActive(t)}
+                    >
+                      {t.active ? "Desactivar" : "Activar"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* MODAL */}
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h3 className="modal-title">Crear nuevo tipo</h3>
+                <p className="modal-subtitle">
+                  Define un nuevo tipo de solicitud para el sistema
+                </p>
+              </div>
+              <button
+                className="close-button"
+                onClick={() => setShowModal(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <form className="simple-form" onSubmit={handleCreate} style={{ padding: "20px 22px" }}>
+              <label>
+                Key técnica
+                <input
+                  name="key"
+                  value={form.key}
+                  onChange={handleChange}
+                  placeholder="ej: despliegue, acceso, cambio_tecnico"
+                  required
+                />
+              </label>
+
+              <label>
+                Nombre visible
+                <input
+                  name="label"
+                  value={form.label}
+                  onChange={handleChange}
+                  placeholder="ej: Despliegue de versión"
+                  required
+                />
+              </label>
+
+              <label>
+                Categoría
+                <input
+                  name="category"
+                  value={form.category}
+                  onChange={handleChange}
+                  placeholder="ej: Despliegues, Accesos, Cambios"
+                  required
+                />
+              </label>
+
+              <label>
+                Descripción
+                <textarea
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  rows={3}
+                  placeholder="Descripción corta para que el equipo sepa cuándo usar este tipo."
+                />
+              </label>
+
+              <button
+                type="submit"
+                className="primary-button"
+                disabled={saving}
+              >
+                {saving ? "Guardando..." : "Crear tipo"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

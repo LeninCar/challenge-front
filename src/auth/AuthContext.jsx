@@ -1,4 +1,3 @@
-// src/auth/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
@@ -6,10 +5,9 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
 
-  const [users] = useState([]); // compat viejo, pero ya no lo usamos
+  const [users] = useState([]); 
   const [loading] = useState(false);
 
-  // Restaurar usuario desde localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {

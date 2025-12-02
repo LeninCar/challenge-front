@@ -9,7 +9,6 @@ export async function getRequestTypes() {
 
 // Crear tipo
 export async function createRequestType(payload) {
-  // { key, label, category, description }
   const res = await api.post("/request-types", payload);
   return res.data;
 }

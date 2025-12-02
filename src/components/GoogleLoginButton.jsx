@@ -14,7 +14,6 @@ export function GoogleLoginButton() {
 
       const { token, user } = res.data;
 
-      // Guardamos user + token en el contexto y localStorage
       login(user, token);
     } catch (err) {
       console.error("Error en login con Google:", err);
