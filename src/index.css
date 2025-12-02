@@ -1019,3 +1019,144 @@ body {
   background: #f1f5f9;
 }
 
+/* =========================================
+   Estilos para la pantalla de elegir rol
+   ========================================= */
+
+.login-role-group {
+  text-align: left;
+  margin-top: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.login-role-label {
+  font-size: 0.9rem;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.login-role-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.login-role-option {
+  display: flex;
+  align-items: flex-start;           /* para que el radio no "descuadre" */
+  gap: 0.6rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  font-size: 0.86rem;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    transform 0.05s ease;
+}
+
+.login-role-option:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
+  transform: translateY(-1px);
+}
+
+.login-role-option input[type="radio"] {
+  margin-top: 2px; /* alinea el circulito con el texto */
+  accent-color: #2563eb;
+}
+
+/* ========== Header: usuario ========== */
+
+.header-user {
+  position: relative;              /* ancla el menú al contenedor del usuario */
+}
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.user-pill:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+}
+
+.user-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #2563eb;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.1;
+}
+
+.user-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+/* Pastillita para el rol */
+.user-role-pill {
+  margin-top: 2px;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #4b5563;
+  text-transform: capitalize;
+}
+
+/* ========== Menú de usuario ========== */
+
+.user-menu {
+  position: absolute;
+  right: 0;                             /* alineado al extremo derecho del pill */
+  top: calc(100% + 8px);                /* justo debajo del pill */
+  min-width: 160px;
+  background: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+  padding: 0.25rem 0.25rem;
+  z-index: 50;
+}
+
+.user-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  color: #111827;
+  cursor: pointer;
+}
+
+.user-menu-item:hover {
+  background: #f3f4f6;
+}

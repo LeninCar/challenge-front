@@ -1,5 +1,16 @@
 import api from "./client";
 
+
+export async function getRequests() {
+  const res = await api.get("/requests");   
+  return res.data;
+}
+
+export async function getMyRequests() {
+  const res = await api.get("/requests/mine"); 
+  return res.data;
+}
+
 export async function createRequest(payload) {
   const res = await api.post("/requests", payload);
   return res.data;

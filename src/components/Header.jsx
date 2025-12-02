@@ -162,12 +162,25 @@ export default function Header() {
         </Link>
 
         {/* Usuario */}
-        <div className="header-user" ref={userMenuRef}>
+         <div className="header-user" ref={userMenuRef}>
           <button className="user-pill" onClick={toggleUserMenu}>
             <div className="user-circle">{userInitial}</div>
-            <span className="user-name">
-              {currentUser?.name || currentUser?.email}
-            </span>
+
+            <div className="user-info">
+              <span className="user-name">
+                {currentUser?.name || currentUser?.email}
+              </span>
+
+              {currentUser?.role && (
+                <span className="user-role-pill">
+                  {currentUser.role === "aprobador"
+                    ? "Aprobador"
+                    : currentUser.role === "solicitante"
+                    ? "Solicitante"
+                    : currentUser.role}
+                </span>
+              )}
+            </div>
           </button>
 
           {showUserMenu && (

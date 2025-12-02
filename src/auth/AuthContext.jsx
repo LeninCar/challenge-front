@@ -6,8 +6,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Compatibilidad con código viejo
-  const [users] = useState([]);     // ya no los cargamos
+  const [users] = useState([]); // compat viejo, pero ya no lo usamos
   const [loading] = useState(false);
 
   // Restaurar usuario desde localStorage
@@ -25,7 +24,7 @@ export function AuthProvider({ children }) {
 
   // login llamado después de /api/auth/google
   const login = (user, token) => {
-    localStorage.setItem("authToken", token);
+    if (token) localStorage.setItem("authToken", token);
     localStorage.setItem("currentUser", JSON.stringify(user));
     setCurrentUser(user);
   };
@@ -37,10 +36,8 @@ export function AuthProvider({ children }) {
   };
 
   const value = {
-    // 🔹 compat con código anterior
     users,
     loading,
-    // 🔹 nuevo
     currentUser,
     setCurrentUser,
     login,

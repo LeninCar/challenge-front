@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUsers } from "../api/usersApi";
-import { getRequestsByApprover } from "../api/requestsApi";
+import { getMyRequests, getRequestsByApprover } from "../api/requestsApi";
 import RequestCard from "../components/RequestCard";
+import { useAuth } from "../auth/AuthContext";
 
 function StatCard({ label, value, icon, variant = "default" }) {
   return (
@@ -17,8 +17,9 @@ function StatCard({ label, value, icon, variant = "default" }) {
 }
 
 export default function Dashboard() {
-  const [approvers, setApprovers] = useState([]);
-  const [approverId, setApproverId] = useState("");
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+
   const [requests, setRequests] = useState([]);
 
   const [search, setSearch] = useState("");      // 🔍 texto de búsqueda
@@ -26,42 +27,37 @@ export default function Dashboard() {
   const [typeFilter, setTypeFilter] = useState("todos");
 
   const [message, setMessage] = useState("");
-  const navigate = useNavigate();
 
-  // Cargar usuarios aprobadores
+  // Cargar solicitudes según el rol del usuario logueado
   useEffect(() => {
-    (async () => {
-      try {
-        const users = await getUsers();
-        const onlyApprovers = users.filter((u) => u.role === "aprobador");
-        setApprovers(onlyApprovers);
-        if (onlyApprovers.length > 0) {
-          setApproverId(String(onlyApprovers[0].id));
-        }
-      } catch (err) {
-        console.error(err);
-        setMessage("Error cargando usuarios");
-      }
-    })();
-  }, []);
+    if (!currentUser) return;
 
-  // Cargar solicitudes cuando cambia el aprobador
-  useEffect(() => {
     (async () => {
-      if (!approverId) return;
       try {
         setMessage("");
-        const data = await getRequestsByApprover(Number(approverId));
-        setRequests(data);
-        if (data.length === 0) {
-          setMessage("No hay solicitudes para este aprobador.");
+        let data = [];
+
+        if (currentUser.role === "aprobador") {
+          // 🔹 Aprobador: solicitudes donde él es el aprobador asignado
+          data = await getRequestsByApprover(Number(currentUser.id));
+          if (data.length === 0) {
+            setMessage("No hay solicitudes asignadas a tu aprobación.");
+          }
+        } else {
+          // 🔹 Solicitante (u otros roles): solicitudes que él creó
+          data = await getMyRequests();
+          if (data.length === 0) {
+            setMessage("Aún no has creado ninguna solicitud.");
+          }
         }
+
+        setRequests(data);
       } catch (err) {
-        console.error(err);
-        setMessage("Error cargando solicitudes.");
+        console.error("Error cargando solicitudes:", err);
+        setMessage("Error cargando solicitudes. Revisa los logs del backend.");
       }
     })();
-  }, [approverId]);
+  }, [currentUser]);
 
   // Estadísticas
   const stats = useMemo(() => {
@@ -132,18 +128,6 @@ export default function Dashboard() {
 
         {/* Selects */}
         <div className="filter-selects">
-          {/* Aprobador */}
-          <select
-            value={approverId}
-            onChange={(e) => setApproverId(e.target.value)}
-          >
-            {approvers.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
-
           {/* Estado */}
           <select
             value={statusFilter}
