@@ -1,3 +1,4 @@
+// src/pages/Login.jsx
 import { GoogleLoginButton } from "../components/GoogleLoginButton";
 import { useAuth } from "../auth/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -11,11 +12,24 @@ export default function Login() {
   }
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Flujo de Aprobación CoE</h1>
-      <p>Inicia sesión para continuar</p>
+    <div className="login-page">
+      <div className="login-card">
+        <div className="login-icon">
+          <span>✔</span>
+        </div>
 
-      <GoogleLoginButton />
+        <h1 className="login-title">Sistema de Aprobaciones CoE</h1>
+
+        <p className="login-subtitle">
+          Inicia sesión con tu cuenta corporativa para continuar
+        </p>
+
+        <GoogleLoginButton />
+
+        <p className="login-footer-text">
+          Acceso seguro · Google Identity Services
+        </p>
+      </div>
     </div>
   );
 }

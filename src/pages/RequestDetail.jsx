@@ -26,8 +26,24 @@ export default function RequestDetail() {
     }
   }
 
+  // Carga inicial cuando cambia el id
   useEffect(() => {
+    if (!id) return;
     loadDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  // 🔁 Auto-refresh del detalle / historial cada 30 segundos
+  useEffect(() => {
+    if (!id) return;
+
+    const intervalId = setInterval(() => {
+      loadDetail();
+    }, 10000); // 30 000 ms = 30s
+
+    // Limpiar intervalo al salir de la pantalla o cambiar de id
+    return () => clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   if (!data) return <p>Cargando...</p>;
@@ -64,7 +80,7 @@ export default function RequestDetail() {
       });
       setComment("");
       setMessage(`Solicitud actualizada a estado "${newStatus}".`);
-      await loadDetail();
+      await loadDetail(); // recargar detalle inmediato después de cambiar estado
     } catch (err) {
       console.error("Error cambiando estado:", err);
       const backendMsg = err.response?.data?.error;
@@ -181,7 +197,10 @@ export default function RequestDetail() {
 
           {/* Aviso de permisos */}
           {!canChangeStatus && (
-            <div className="detail-message detail-message-info" style={{ marginTop: 8 }}>
+            <div
+              className="detail-message detail-message-info"
+              style={{ marginTop: 8 }}
+            >
               Esta solicitud solo puede ser aprobada o rechazada por el aprobador asignado
               (ID #{request.approver_id}).
             </div>
@@ -215,9 +234,9 @@ export default function RequestDetail() {
               className="primary-button"
               style={{
                 backgroundColor: "#991b1b",
-                ...( !canChangeStatus
+                ...(!canChangeStatus
                   ? { opacity: 0.6, cursor: "not-allowed" }
-                  : {} ),
+                  : {}),
               }}
               disabled={!canChangeStatus}
             >
