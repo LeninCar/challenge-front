@@ -17,4 +17,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+    if (status === 401) {
+      // Limpia todo lo de auth
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("currentUser");
+
+      // Redirige al login
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

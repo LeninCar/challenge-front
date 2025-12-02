@@ -30,27 +30,35 @@ export default function RequestDetail() {
   useEffect(() => {
     if (!id) return;
     loadDetail();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // 🔁 Auto-refresh del detalle / historial cada 30 segundos
+  // 🔁 Auto-refresh del detalle / historial cada 10 segundos
   useEffect(() => {
     if (!id) return;
 
     const intervalId = setInterval(() => {
       loadDetail();
-    }, 10000); // 10 000 ms = 10s
+    }, 10000);
 
-    // Limpiar intervalo al salir de la pantalla o cambiar de id
     return () => clearInterval(intervalId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   if (!data) return <p>Cargando...</p>;
 
   const { request, history } = data;
 
-  // 🔐 ¿El usuario actual es el aprobador asignado?
+  // 🧾 Etiquetas amigables para solicitante / aprobador
+  const requesterLabel =
+    request.requester_name ||
+    request.requester_email ||
+    (request.requester_id ? `#${request.requester_id}` : "N/A");
+
+  const approverLabel =
+    request.approver_name ||
+    request.approver_email ||
+    (request.approver_id ? `#${request.approver_id}` : "N/A");
+
+  // ¿El usuario actual es el aprobador asignado?
   const canChangeStatus =
     !!currentUser &&
     !!request &&
@@ -73,20 +81,35 @@ export default function RequestDetail() {
     }
 
     try {
-      await changeRequestStatus(id, {
+      const result = await changeRequestStatus(id, {
         newStatus,
         comment,
         // el backend toma actor_id desde req.user.id
       });
+
       setComment("");
-      setMessage(`Solicitud actualizada a estado "${newStatus}".`);
-      await loadDetail(); // recargar detalle inmediato después de cambiar estado
+
+      // 👇 USAR SIEMPRE EL MENSAJE DEL BACKEND SI VIENE
+      if (result?.message) {
+        setMessage(result.message);
+      } else if (result?.request?.status) {
+        setMessage(`Solicitud actualizada a estado "${result.request.status}".`);
+      } else {
+        setMessage(`Solicitud actualizada a estado "${newStatus}".`);
+      }
+
+      // Si realmente hubo cambio, recargo el detalle
+      if (result?.changed) {
+        await loadDetail();
+      }
     } catch (err) {
       console.error("Error cambiando estado:", err);
       const backendMsg = err.response?.data?.error;
       setMessage(
         backendMsg ||
-          `Error cambiando estado de la solicitud: ${err.message || "Error desconocido"}.`
+          `Error cambiando estado de la solicitud: ${
+            err.message || "Error desconocido"
+          }.`
       );
     }
   }
@@ -96,7 +119,8 @@ export default function RequestDetail() {
       <div className="page-header">
         <h2>Detalle de solicitud #{request.id}</h2>
         <p className="page-subtitle">
-          Revisa la información, el historial y realiza acciones sobre la solicitud.
+          Revisa la información, el historial y realiza acciones sobre la
+          solicitud.
         </p>
       </div>
 
@@ -118,12 +142,10 @@ export default function RequestDetail() {
 
         <div className="detail-main-right">
           <p>
-            <strong>Solicitante:</strong>{" "}
-            {request.requester_id ? `#${request.requester_id}` : "N/A"}
+            <strong>Solicitante:</strong> {requesterLabel}
           </p>
           <p>
-            <strong>Aprobador:</strong>{" "}
-            {request.approver_id ? `#${request.approver_id}` : "N/A"}
+            <strong>Aprobador:</strong> {approverLabel}
           </p>
           <p>
             <strong>Creada:</strong>{" "}
@@ -201,8 +223,8 @@ export default function RequestDetail() {
               className="detail-message detail-message-info"
               style={{ marginTop: 8 }}
             >
-              Esta solicitud solo puede ser aprobada o rechazada por el aprobador asignado
-              (ID #{request.approver_id}).
+              Esta solicitud solo puede ser aprobada o rechazada por el
+              aprobador asignado (ID #{request.approver_id}).
             </div>
           )}
 
